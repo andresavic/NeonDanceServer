@@ -12,6 +12,11 @@ public class Logger {
 	public static final int INFO = 0, WARNING = 1, ERROR = 2, DEBUG = 3;
 	public static final int UNKNOWN = 0, UP = 1, DOWN = 2, ISSUES = 3;
 	
+	public Logger() {
+		this.serverStatus = UNKNOWN;
+		this.frame = MainFrame.getInstance();
+	}
+	
 	public void log(int severity, String text) {
 		StringBuilder sb = new StringBuilder();
 		frame = MainFrame.getInstance();
@@ -42,11 +47,6 @@ public class Logger {
 		frame.getErrorText().append(sb.toString());
 	}
 	
-	public Logger() {
-		this.serverStatus = UNKNOWN;
-		this.frame = MainFrame.getInstance();
-	}
-
 	public void handleError(Exception e) {
 		log(ERROR, e.getMessage());
 	}
@@ -84,6 +84,7 @@ public class Logger {
 			break;
 
 		default:
+			frame.getStatus().setBackground(Color.GRAY);
 			break;
 		}
 	}

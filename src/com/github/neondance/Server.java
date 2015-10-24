@@ -14,6 +14,7 @@ public class Server extends Thread {
 	
 	public static final String version = "0.0.1";
 	
+	// SERVER START
 	@Override
 	public void run() {
 		suitThreads = new ArrayList<SuitThread>();
@@ -24,9 +25,13 @@ public class Server extends Thread {
 			socket.setSoTimeout(10000);
 			log.log(Logger.INFO, "Server started! Listening to connections...");
 			log.setServerStatus(Logger.UP);
+			SuitThread st = null;
 			while(true) {
 				Socket client = socket.accept();
-				suitThreads.add(new SuitThread(client));
+				log.log(Logger.INFO, "Client connecting...");
+				st = new SuitThread(client);
+				log.log(Logger.INFO, "Client connected! Name: " + st.getName());
+				st.setSuitPanel(new SuitPanel(st));
 			}
 		} catch (IOException e) {
 			if (!(e instanceof SocketException)) {
@@ -37,9 +42,11 @@ public class Server extends Thread {
 		log.setServerStatus(Logger.DOWN);
 	}
 
+	//SERVER STOP
 	@Override
 	public void interrupt() {
 		log.log(Logger.INFO, "Server shutting down...");
+		//Disconnect all suits
 		for (SuitThread suitThread : suitThreads) {
 			log.log(Logger.INFO, "Disconnecting suit: " + suitThread.getName());
 			suitThread.interrupt();

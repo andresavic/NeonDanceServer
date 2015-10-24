@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import javax.swing.border.BevelBorder;
+import javax.swing.ScrollPaneConstants;
 
 public class MainFrame {
 
@@ -28,6 +29,7 @@ public class MainFrame {
 	private JPanel status;
 	private JTextArea errorText;
 	private Server server;
+	private JScrollPane suitePane;
 
 	/**
 	 * Launch the application.
@@ -92,14 +94,15 @@ public class MainFrame {
 		
 		JScrollPane scrollPane = new JScrollPane();
 		
-		JScrollPane scrollPane_1 = new JScrollPane();
+		suitePane = new JScrollPane();
+		suitePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(scrollPane_1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
+						.addComponent(suitePane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
 						.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
 						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
 							.addComponent(lblServerStatus)
@@ -120,7 +123,7 @@ public class MainFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnStartStop)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(scrollPane_1, GroupLayout.PREFERRED_SIZE, 296, GroupLayout.PREFERRED_SIZE)
+					.addComponent(suitePane, GroupLayout.PREFERRED_SIZE, 296, GroupLayout.PREFERRED_SIZE)
 					.addContainerGap(51, Short.MAX_VALUE))
 		);
 		
@@ -146,6 +149,10 @@ public class MainFrame {
 
 	public JTextArea getErrorText() {
 		return errorText;
+	}
+
+	public JScrollPane getSuitePane() {
+		return suitePane;
 	}
 
 }
