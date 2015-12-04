@@ -63,15 +63,6 @@ public class MainFrame {
 		frame.setBounds(100, 100, 928, 554);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		JMenuBar menuBar = new JMenuBar();
-		frame.setJMenuBar(menuBar);
-		
-		JMenu mnFile = new JMenu("File");
-		menuBar.add(mnFile);
-		
-		JMenu mnHelp = new JMenu("Help");
-		menuBar.add(mnHelp);
-		
 		JLabel lblServerStatus = new JLabel("Server status");
 		
 		JButton btnStartStop = new JButton("Start / Stop");
@@ -84,6 +75,8 @@ public class MainFrame {
 					server.interrupt();
 					server = null;
 				} else {
+					server = null;
+					server = new Server();
 					server.start();
 				}
 			}
@@ -95,11 +88,12 @@ public class MainFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		
 		suitePane = new JScrollPane();
-		suitePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		suitePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		suitePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
 						.addComponent(suitePane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
@@ -123,8 +117,8 @@ public class MainFrame {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnStartStop)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(suitePane, GroupLayout.PREFERRED_SIZE, 296, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(51, Short.MAX_VALUE))
+					.addComponent(suitePane, GroupLayout.DEFAULT_SIZE, 356, Short.MAX_VALUE)
+					.addContainerGap())
 		);
 		
 		errorText = new JTextArea();

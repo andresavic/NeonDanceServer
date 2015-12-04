@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.Charset;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SuitThread extends Thread {
@@ -23,14 +24,19 @@ public class SuitThread extends Thread {
 	private HeartBeat heartBeat;
 	private BufferedReader reader;
 	private BufferedWriter writer;
+	private Server server;
 	
-	public SuitThread(Socket socket) {
+	public SuitThread(Socket socket, Server server) {
 		super();
 		this.socket = socket;
 		this.parameter = new Parameter();
 		this.log = Logger.getInstance();
+		this.server = server;
 	}
 
+	/*
+	 * Suitthread is started
+	 */
 	@Override
 	public void run() {
 		try {
@@ -41,9 +47,14 @@ public class SuitThread extends Thread {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 * Suitthread is stopped
+	 */
 	@Override
 	public void interrupt() {
 		try {
@@ -53,83 +64,52 @@ public class SuitThread extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		server.threadInterrupted(this);
 		super.interrupt();
 	}
 
-	private void initialize(BufferedReader reader, BufferedWriter writer) throws IOException, SocketException{
-		socket.setSoTimeout(10000);
-		JSONObject json = new JSONObject(reader.readLine());
-		parameter.name = json.getString("name");
-		parameter.version = json.getString("version");
+	//INITIALIZE CONNECTION
+	//
+	private void initialize(BufferedReader reader, BufferedWriter writer) throws IOException, SocketException, JSONException{
+		//Timeout to abort if no data is recieved
+		//TODO: UNCOMMENT
+//		socket.setSoTimeout(10000);
+		//Parameters are filled
+		String input = reader.readLine();
+		parameter.name = input;
 		parameter.ip = socket.getInetAddress().getHostAddress();
+		Thread.currentThread().setName(parameter.name);
+		//Server version is send to client
 		writer.write(Server.version);
+		writer.flush();
+		//Set timout back to infinite
 		socket.setSoTimeout(0);
+		//Set parameters to display on panel
 		setPanelParameters();
+		//Create new heartbeat and start it
 		this.heartBeat = new HeartBeat(socket, this);
 		this.heartBeat.start();
 	}
 	
+	//Assign suitpanel to thread
+	public void setSuitPanel(SuitPanel suitPanel) {
+		this.suitPanel = suitPanel;
+		setPanelParameters();
+	}
+	
+	//Set panel parameters
 	private void setPanelParameters() {
 		suitPanel.getTextFieldName().setText(parameter.name);
-		suitPanel.getTextFieldVersion().setText(parameter.version);
 		suitPanel.getTextFieldIp().setText(parameter.ip);
 	}
 
-	public class Parameter {
-		public String name;
-		public String version;
-		public String ip;
-	}
-	
 	public SuitPanel getSuitPanel() {
 		return suitPanel;
 	}
 	
-	public void setSuitPanel(SuitPanel suitPanel) {
-		this.suitPanel = suitPanel;
-		this.suitPanel.getTextFieldName().setText(parameter.name);
-		this.suitPanel.getTextFieldIp().setText(parameter.ip);
-		this.suitPanel.getTextFieldVersion().setText(parameter.version);
-	}
-
-	public class HeartBeat extends Thread {
-		
-		private Socket socket;
-		private SuitThread suitThread;
-		private Boolean cleanInterrupt;
-
-		public HeartBeat(Socket socket, SuitThread suitThread) {
-			super();
-			this.suitThread = suitThread;
-			this.socket = socket;
-			this.cleanInterrupt = false;
-		}
-
-		@Override
-		public void run() {
-			try {
-				while(true) {
-					socket.setSoTimeout(10000);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					reader.readLine();
-					suitThread.getSuitPanel().flashHearbeat();
-				}
-			} catch (SocketException e) {
-				if (!cleanInterrupt) {
-					suitThread.getSuitPanel().getTxtOutput().setText("HEARTBEAT ERROR");
-					suitThread.interrupt();
-					e.printStackTrace();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		public void interrupt(Boolean cleanInterrupt) {
-			this.cleanInterrupt = cleanInterrupt;
-			super.interrupt();
-		}
-		
+	public class Parameter {
+		public String name;
+		public String ip;
 	}
 
 }
