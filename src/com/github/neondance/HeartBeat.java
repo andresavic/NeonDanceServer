@@ -31,10 +31,12 @@ public class HeartBeat extends Thread {
 		try {
 			while(true) {
 				//Timout for not recieving data
-				socket.setSoTimeout(10000);
+				socket.setSoTimeout(40000);
 				//Reading data
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				reader.readLine();
+				if (reader.readLine() == null) {
+					throw new SocketException();
+				}
 				//Flash if data found
 				suitThread.getSuitPanel().flashHearbeat();
 				suitThread.getSuitPanel().getHeartbeatTime().setText(df.format(new Date(System.currentTimeMillis())));
@@ -43,13 +45,13 @@ public class HeartBeat extends Thread {
 			//If the interrupt was intentional, do nothing else SELFDESTRUCT
 			if (!cleanInterrupt) {
 				suitThread.getSuitPanel().getTxtOutput().setText("HEARTBEAT ERROR");
-				suitThread.interrupt();
+//				suitThread.interrupt();
 				e.printStackTrace();
 			}
 		} catch (IOException e) {
 			if (!cleanInterrupt) {
 				suitThread.getSuitPanel().getTxtOutput().setText("HEARTBEAT ERROR");
-				suitThread.interrupt();
+//				suitThread.interrupt();
 				e.printStackTrace();
 			}
 		}
@@ -57,6 +59,16 @@ public class HeartBeat extends Thread {
 
 	public void interrupt(Boolean cleanInterrupt) {
 		this.cleanInterrupt = cleanInterrupt;
+		super.interrupt();
+	}
+
+	@Override
+	public void interrupt() {
+		try {
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		super.interrupt();
 	}
 	

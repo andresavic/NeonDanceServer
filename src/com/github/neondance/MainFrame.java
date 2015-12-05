@@ -21,6 +21,9 @@ import javax.swing.border.LineBorder;
 import java.awt.Color;
 import javax.swing.border.BevelBorder;
 import javax.swing.ScrollPaneConstants;
+import java.awt.FlowLayout;
+import javax.swing.border.TitledBorder;
+import javax.swing.JToggleButton;
 
 public class MainFrame {
 
@@ -29,7 +32,9 @@ public class MainFrame {
 	private JPanel status;
 	private JTextArea errorText;
 	private Server server;
-	private JScrollPane suitePane;
+	private JScrollPane suiteScrollPane;
+	private JPanel suitePane;
+	private JPanel panel;
 
 	/**
 	 * Launch the application.
@@ -60,7 +65,7 @@ public class MainFrame {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 928, 554);
+		frame.setBounds(100, 100, 928, 634);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JLabel lblServerStatus = new JLabel("Server status");
@@ -87,39 +92,145 @@ public class MainFrame {
 		
 		JScrollPane scrollPane = new JScrollPane();
 		
-		suitePane = new JScrollPane();
-		suitePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		suitePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		suiteScrollPane = new JScrollPane();
+		suiteScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		suiteScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		
+		panel = new JPanel();
+		panel.setBorder(new TitledBorder(null, "All", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		
+		JLabel lblVersion = new JLabel(Server.version);
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.TRAILING)
+			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(suitePane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
-						.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
-						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(suiteScrollPane, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
+						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
+						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblServerStatus)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(status, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE))
-						.addComponent(btnStartStop, Alignment.LEADING))
+							.addComponent(status, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED, 736, Short.MAX_VALUE)
+							.addComponent(lblVersion))
+						.addComponent(btnStartStop)
+						.addComponent(panel, GroupLayout.PREFERRED_SIZE, 318, GroupLayout.PREFERRED_SIZE))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
-						.addComponent(status, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(lblServerStatus, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+							.addComponent(status, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(lblServerStatus, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						.addComponent(lblVersion))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 82, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnStartStop)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(suitePane, GroupLayout.DEFAULT_SIZE, 356, Short.MAX_VALUE)
+					.addComponent(suiteScrollPane, GroupLayout.PREFERRED_SIZE, 318, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE)
+					.addGap(52))
+		);
+		
+		JButton button = new JButton("Flash");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.FLASH);
+			}
+		});
+		
+		JButton button_1 = new JButton("Blink");
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.BLINK);
+			}
+		});
+		
+		JButton button_2 = new JButton("Rand");
+		button_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.RANDOM);
+			}
+		});
+		
+		JButton btnOn = new JButton("On");
+		btnOn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.ON);
+			}
+		});
+		
+		JButton btnOff = new JButton("Off");
+		btnOff.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.OFF);
+			}
+		});
+		
+		JButton btnStart = new JButton("Start");
+		btnStart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.START_SHOW);
+			}
+		});
+		
+		JButton btnStop = new JButton("Stop");
+		btnStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(SuitThread.STOP_SHOW);
+			}
+		});
+		GroupLayout gl_panel = new GroupLayout(panel);
+		gl_panel.setHorizontalGroup(
+			gl_panel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel.createSequentialGroup()
+							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(btnOn, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(button, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 65, Short.MAX_VALUE))
+							.addGap(6)
+							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(btnOff, 0, 0, Short.MAX_VALUE)
+								.addComponent(button_1, GroupLayout.DEFAULT_SIZE, 66, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
+							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(btnStop, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnStart, GroupLayout.DEFAULT_SIZE, 95, Short.MAX_VALUE)))
+						.addComponent(button_2, GroupLayout.PREFERRED_SIZE, 66, GroupLayout.PREFERRED_SIZE))
 					.addContainerGap())
 		);
+		gl_panel.setVerticalGroup(
+			gl_panel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel.createSequentialGroup()
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+						.addComponent(button)
+						.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+							.addComponent(button_1)
+							.addComponent(btnStart)))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel.createSequentialGroup()
+							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+								.addComponent(btnOn)
+								.addComponent(btnOff))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(button_2))
+						.addComponent(btnStop))
+					.addGap(4))
+		);
+		panel.setLayout(gl_panel);
+		
+		suitePane = new JPanel();
+		suiteScrollPane.setViewportView(suitePane);
+		suitePane.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		
 		errorText = new JTextArea();
 		DefaultCaret caret = (DefaultCaret)errorText.getCaret();
@@ -145,8 +256,7 @@ public class MainFrame {
 		return errorText;
 	}
 
-	public JScrollPane getSuitePane() {
+	public JPanel getSuitePane() {
 		return suitePane;
 	}
-
 }
