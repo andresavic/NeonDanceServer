@@ -34,9 +34,11 @@ public class HeartBeat extends Thread {
 				socket.setSoTimeout(40000);
 				//Reading data
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				if (reader.readLine() == null) {
+				String name = reader.readLine();
+				if (name == null) {
 					throw new SocketException();
 				}
+				suitThread.setSuitName(name);
 				//Flash if data found
 				suitThread.getSuitPanel().flashHearbeat();
 				suitThread.getSuitPanel().getHeartbeatTime().setText(df.format(new Date(System.currentTimeMillis())));

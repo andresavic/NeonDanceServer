@@ -27,13 +27,13 @@ public class SuitThread extends Thread {
 	private Server server;
 	private boolean showRunning, iO;
 	
-	public static final String START_SHOW = "S;";
-	public static final String FLASH = "Flash;";
-	public static final String ON = "On;";
-	public static final String OFF = "Off;";
-	public static final String BLINK = "Blink;";
-	public static final String RANDOM = "Random;";
-	public static final String STOP_SHOW = "E;";
+	public static final String START_SHOW = "S;\r\n";
+	public static final String FLASH = "Flash;\r\n";
+	public static final String ON = "On;\r\n";
+	public static final String OFF = "Off;\r\n";
+	public static final String BLINK = "Blink;\r\n";
+	public static final String RANDOM = "Random;\r\n";
+	public static final String STOP_SHOW = "E;\r\n";
 	
 	public SuitThread(Socket socket, Server server) {
 		super();
@@ -87,13 +87,8 @@ public class SuitThread extends Thread {
 		//Timeout to abort if no data is recieved
 		socket.setSoTimeout(10000);
 		//Parameters are filled
-		String input = reader.readLine();
-		parameter.name = input;
+		parameter.name = this.getName();
 		parameter.ip = socket.getInetAddress().getHostAddress();
-		Thread.currentThread().setName(parameter.name);
-		//Server version is send to client
-		writer.write(Server.version);
-		writer.flush();
 		//Set timout back to infinite
 		socket.setSoTimeout(0);
 		//Set parameters to display on panel
@@ -128,8 +123,16 @@ public class SuitThread extends Thread {
 	
 	//Set panel parameters
 	private void setPanelParameters() {
-		suitPanel.getTextFieldName().setText(parameter.name);
-		suitPanel.getTextFieldIp().setText(parameter.ip);
+		if (suitPanel != null) {
+			suitPanel.getTextFieldName().setText(parameter.name);
+			suitPanel.getTextFieldIp().setText(parameter.ip);
+		}
+	}
+	
+	public void setSuitName(String name){
+		this.setName(name);
+		parameter.name = name;
+		setPanelParameters();
 	}
 
 	public SuitPanel getSuitPanel() {
