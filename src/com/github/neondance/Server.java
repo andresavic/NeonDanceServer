@@ -1,40 +1,38 @@
 package com.github.neondance;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.illposed.osc.OSCMessage;
-import com.illposed.osc.OSCPort;
-import com.illposed.osc.OSCPortOut;
+import org.joda.time.Interval;
 
 public class Server extends Thread {
 	
-	ServerSocket socket = null;
-	CopyOnWriteArrayList<SuitThread> suitThreads = null;
-	Logger log;
-	OSCPortOut osc;
-	MainFrame mainFrame;
+	private ServerSocket socket = null;
+	private CopyOnWriteArrayList<Suit> suits = null;
+	private Logger log;
+	private MainFrame mainFrame;
+	private Osc osc;
 	
-	public static final String version = "0.1.0";
+	public static final String version = "0.2.0";
+	
+	public Server() {
+		this.mainFrame = MainFrame.getInstance();
+		this.osc = Osc.getInstance();
+	}
 	
 	// SERVER START
 	@Override
 	public void run() {
-		mainFrame = MainFrame.getInstance();
+		this.setName("Server Thread");
 		//All threads are saved here
-		suitThreads = new CopyOnWriteArrayList<SuitThread>();
+		suits = new CopyOnWriteArrayList<Suit>();
 		//Logger is initialized
 		log = Logger.getInstance();
 		log.log(Logger.INFO, "Server starting...");
 		try {
-			osc = new OSCPortOut(InetAddress.getByName("192.168.1.2"),53000);
 			//Server socket
 			socket = new ServerSocket(2121);
 			//Server timeout
@@ -43,7 +41,7 @@ public class Server extends Thread {
 			log.log(Logger.INFO, "Server started! Listening to connections...");
 			log.setServerStatus(Logger.UP);
 			
-			SuitThread st = null;
+			Suit st = null;
 			while(true) {
 				//Listening for connections
 				Socket client = socket.accept();
@@ -52,14 +50,14 @@ public class Server extends Thread {
 				 */
 				log.log(Logger.INFO, "Client connecting...");
 				//Thread is creating
-				st = new SuitThread(client, this);
-				st.start();
-				log.log(Logger.INFO, "Client connected! Name: " + st.getName());
+				st = new Suit(client, this);
+				st.connect();
+				log.log(Logger.INFO, "Client connected!");
 				//Panel is creating
 				st.setSuitPanel(new SuitPanel(st));
 				//Thread added to list of threads
-				suitThreads.add(st);
-				mainFrame.getLblConnectedClients().setText("Connected Clients: " + suitThreads.size());
+				suits.add(st);
+				mainFrame.getLblConnectedClients().setText("Connected Clients: " + suits.size());
 			}
 		} catch (IOException e) {
 			//If exception is a SocketException, the server was terminated by the user
@@ -80,10 +78,11 @@ public class Server extends Thread {
 	public void interrupt() {
 		log.log(Logger.INFO, "Server shutting down...");
 		//Disconnect all suits
-		for (SuitThread suitThread : suitThreads) {
-			log.log(Logger.INFO, "Disconnecting suit: " + suitThread.getName());
-			suitThread.interrupt();
+		for (Suit suit : suits) {
+			log.log(Logger.INFO, "Disconnecting suit: " + suit.parameter.name);
+			suit.disconnect();
 		}
+		mainFrame.getLblConnectedClients().setText("Connected Clients: " + suits.size());
 		try {
 			socket.close();
 		} catch (IOException e) {
@@ -96,61 +95,88 @@ public class Server extends Thread {
 	}
 	
 	//Remove thread of list of threads
-	public void threadInterrupted(SuitThread thread) {
-		log.log(Logger.INFO, "Client disconnected: " + thread.getName());
-		for (SuitThread suitThread : suitThreads) {
-			if (suitThread.getId() == thread.getId() && !thread.isAlive()) {
-				suitThreads.remove(suitThread);
-			} else {
-				log.log(Logger.ERROR, "Removing of thread failed! Thread not dead!");
-			}
-		}
+	public void suitDisconnected(Suit suit) {
+		log.log(Logger.INFO, "Client disconnected: " + suit.parameter.name);
+		suits.remove(suit);
+		mainFrame.getLblConnectedClients().setText("Connected Clients: " + suits.size());
 	}
 	
-	public void oscGo(){
-		try {
-			Thread.sleep(290);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		try {
-			Runtime.getRuntime().exec("open -a VLC.app /Users/mcand007/Downloads/NeonWireDanceRemixVersion2.mp3");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//	public void oscGo(){
 		
-	}
+		
+//		try {
+//			Thread.sleep(290);
+//		} catch (InterruptedException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		try {
+//			Runtime.getRuntime().exec("open -a VLC.app /Users/mcand007/Downloads/NeonWireDanceRemixVersion2.mp3");
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+//	}
 	
 	public void sendCommandToAll(String command) {
-		log.log(Logger.INFO, "Send Time: " + System.currentTimeMillis());
-		for (SuitThread suitThread : suitThreads) {
-			suitThread.sendCommand(command);
-			log.log(Logger.INFO, suitThread.getName() + " - " + System.currentTimeMillis());
+		for (Suit suit : suits) {
 			switch (command) {
-			case SuitThread.START_SHOW:
-				suitThread.setShowRunning(true);
-			
+			case Suit.START_SHOW:
+				suit.setShowRunning(true);
 				break;
 				
-			case SuitThread.STOP_SHOW:
-				suitThread.setShowRunning(false);
+			case Suit.STOP_SHOW:
+				suit.setShowRunning(false);
 				break;
 				
-			case SuitThread.ON:
-				suitThread.setiO(true);
+			case Suit.ON:
+				suit.setiO(true);
 				break;
 				
-			case SuitThread.OFF:
-				suitThread.setiO(false);
+			case Suit.OFF:
+				suit.setiO(false);
 				break;
 			}
+			suit.sendCommand(command);
+			if (command.equals(Suit.START_SHOW)) {
+				verifyShowStartRecieved();
+			}
 		}
-		if (command.equals(SuitThread.START_SHOW)){
-			oscGo();
+		if (mainFrame.getChckbxUseOsc().isSelected()){
+			if (command.equals(Suit.START_SHOW)){
+				osc.sendStart();
+			} else if (command.equals(Suit.STOP_SHOW)){
+				osc.sendStop();
+			}
 		}
-		
+	}
+	
+	private void verifyShowStartRecieved() {
+		try {
+			Thread.sleep((int)mainFrame.getStartShowTimeoutSpinner().getValue() + 10);
+		} catch (InterruptedException e) {
+			log.handleError(e);
+		}
+		for (Suit suit : suits) {
+			if (suit.getSendShowStart() == null || suit.getRecievedShowStart() == null) {
+				abortShow();
+			}
+			Interval i = new Interval(suit.getSendShowStart(), suit.getRecievedShowStart());
+			if (i.toDurationMillis() > (int)mainFrame.getStartShowTimeoutSpinner().getValue()) {
+				abortShow();
+				break;
+			}
+			suit.getSuitPanel().getTxtOutput().setText("STARTED - " + i.toDurationMillis() + "ms");
+		}
 	}
 
+	private void abortShow() {
+		sendCommandToAll(Suit.STOP_SHOW);
+		sendCommandToAll(Suit.STOP_SHOW);
+		if (mainFrame.getChckbxUseOsc().isSelected()) {
+			osc.sendStop();
+		}
+		log.log(Logger.WARNING, "Show stopped because recieved message was to late.");
+	}
 }

@@ -1,14 +1,15 @@
 package com.github.neondance;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
+
+import org.joda.time.Instant;
+import org.joda.time.Interval;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 public class HeartBeat extends Thread {
 	
@@ -16,68 +17,109 @@ public class HeartBeat extends Thread {
 	 * 
 	 */
 	private Socket socket;
-	private SuitThread suitThread;
-	private Boolean cleanInterrupt;
+	private Suit suit;
+	private Logger log;
+	private Scanner scan;
+	private MainFrame mainFrame;
 
-	public HeartBeat(Socket socket, SuitThread suitThread) {
+	public HeartBeat(Socket socket, Suit suit) {
 		super();
-		this.suitThread = suitThread;
+		this.suit = suit;
 		this.socket = socket;
-		this.cleanInterrupt = false;
+		this.log = Logger.getInstance();
+		this.mainFrame = MainFrame.getInstance();
 	}
 
 	@Override
 	public void run() {
-		SimpleDateFormat df = new SimpleDateFormat("HH:mm:SS.ss");
-		Scanner scan = null;
+		scan = null;
+		Instant oldTime = new Instant();
+		PeriodFormatter pf = new PeriodFormatterBuilder()
+				.appendMinutes()
+				.appendSuffix("m")
+				.appendSeparator(",")
+				.appendSeconds()
+				.appendSuffix("s")
+				.appendSeparator(",")
+				.appendMillis()
+				.appendSuffix("ms")
+				.toFormatter();
 		try {
 			while(true) {
 				//Timout for not recieving data
-				socket.setSoTimeout(40000);
+				socket.setSoTimeout((int)mainFrame.getHeartBeatTimeOutSpinner().getValue());
 				//Reading data
 				scan = new Scanner(socket.getInputStream());
 				scan.useDelimiter(";");
-				String name = scan.next();
-				if (name == null) {
-					throw new SocketException();
+				String input = "";
+				try {
+					input = scan.next();
+				} catch (NoSuchElementException e) {
+					if (!suit.isShowRunning()) {
+						heartBeatFailed();
+					} else {
+						continue;
+					}
 				}
-				System.out.println("HEARBEAT: " + suitThread.getName() + " RECIEVED: " + name);
-				suitThread.setSuitName(name);
+				if (input == null) {
+					if (!suit.isShowRunning()) {
+						scan.close();
+						throw new SocketException();
+					} else {
+						continue;
+					}
+				}
+				if (!input.contains(":")) {
+					log.log(Logger.WARNING, this.getName() + " no delimiter found in message " + input + " skipping...");
+					continue;
+				}
+				String prefix = input.substring(0, input.indexOf(':'));
+				String content = input.substring(input.indexOf(':')+1);
+				switch (prefix) {
+				case "H":
+					suit.setSuitName(content);
+					this.setName(content+"-Heartbeat");
+					System.out.println("Heartbeat recieved: " + this.getName());
+					break;
+					
+				case "E":
+					log.log(Logger.ERROR, this.getName() + " reports error");
+					break;
+					
+				case "R":
+					log.log(Logger.INFO, this.getName() + " reported: " + content);
+					//TODO Add logic what happens with this response
+					if (suit.isShowRunning() && content.equals("ShowStart")) {
+						suit.setRecievedShowStart(new Instant()	);
+					} else if (!suit.isShowRunning() && content.equals("ShowEnd")) {
+						suit.getSuitPanel().getTxtOutput().setText("");
+					}
+					break;
+					
+				default:
+					log.log(Logger.WARNING, this.getName() + " unknown prefix used! \"" + prefix + "\"");
+					break;
+				}
+				
 				//Flash if data found
-				suitThread.getSuitPanel().flashHearbeat();
-				suitThread.getSuitPanel().getHeartbeatTime().setText(df.format(new Date(System.currentTimeMillis())));
+				suit.getSuitPanel().flashHearbeat();
+				Interval i = new Interval(oldTime, new Instant());
+				suit.getSuitPanel().getHeartbeatTime().setText(pf.print(i.toPeriod()));
+				oldTime = new Instant();
 			}
-		} catch (SocketException e) {
-			//If the interrupt was intentional, do nothing else SELFDESTRUCT
-			if (!cleanInterrupt) {
-				suitThread.getSuitPanel().getTxtOutput().setText("HEARTBEAT ERROR");
-//				suitThread.interrupt();
-				e.printStackTrace();
-			}
-		} catch (IOException e) {
-			if (!cleanInterrupt) {
-				suitThread.getSuitPanel().getTxtOutput().setText("HEARTBEAT ERROR");
-//				suitThread.interrupt();
-				e.printStackTrace();
-			}
+		} catch (NoSuchElementException|IOException e) {
+			heartBeatFailed();
 		} finally {
 			scan.close();
 		}
 	}
-
-	public void interrupt(Boolean cleanInterrupt) {
-		this.cleanInterrupt = cleanInterrupt;
-		super.interrupt();
-	}
-
-	@Override
-	public void interrupt() {
-		try {
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+	
+	private void heartBeatFailed() {
+		suit.getSuitPanel().getTxtOutput().setText("HEARTBEAT ERROR");
+		log.log(Logger.WARNING, suit.parameter.name + " Heartbeat failed! Disconnecting...");
+		if (mainFrame.getChckbxAutoRemoveSuit().isSelected()) {
+			suit.disconnect();
 		}
-		super.interrupt();
 	}
 	
 }

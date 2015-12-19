@@ -2,7 +2,6 @@ package com.github.neondance;
 
 import javax.swing.JPanel;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 
 import javax.swing.GroupLayout;
@@ -14,28 +13,28 @@ import javax.swing.JTextField;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
-import org.omg.PortableInterceptor.SUCCESSFUL;
-
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class SuitPanel extends JPanel {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2590831509594177289L;
 	private JTextField textFieldName;
 	private JTextField textFieldIp;
 	private JPanel panelHeartbeat;
 	private JTextField txtOutput;
-	private SuitThread suitThread;
 	private JTextField heartbeatTime;
 	private MainFrame mainFrame;
 
 	/**
 	 * Create the panel.
 	 */
-	public SuitPanel(SuitThread suitThread) {
+	public SuitPanel(Suit suitThread) {
 		mainFrame = MainFrame.getInstance();
-		this.suitThread = suitThread;
 		
 		JLabel lblName = new JLabel("Name:");
 		
@@ -64,14 +63,14 @@ public class SuitPanel extends JPanel {
 		JButton btnFlash = new JButton("Flash");
 		btnFlash.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				suitThread.sendCommand(SuitThread.FLASH);
+				suitThread.sendCommand(Suit.FLASH);
 			}
 		});
 		
 		JButton btnBlink = new JButton("Blink");
 		btnBlink.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				suitThread.sendCommand(SuitThread.BLINK);
+				suitThread.sendCommand(Suit.BLINK);
 			}
 		});
 		
@@ -80,10 +79,10 @@ public class SuitPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				if (suitThread.isiO()) {
 					suitThread.setiO(false);
-					suitThread.sendCommand(SuitThread.OFF);
+					suitThread.sendCommand(Suit.OFF);
 				} else {
 					suitThread.setiO(true);
-					suitThread.sendCommand(SuitThread.ON);
+					suitThread.sendCommand(Suit.ON);
 				}
 			}
 		});
@@ -91,7 +90,7 @@ public class SuitPanel extends JPanel {
 		JButton btnRandom = new JButton("Rand");
 		btnRandom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				suitThread.sendCommand(SuitThread.RANDOM);
+				suitThread.sendCommand(Suit.RANDOM);
 			}
 		});
 		
@@ -99,7 +98,7 @@ public class SuitPanel extends JPanel {
 		btnDisconnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (JOptionPane.showConfirmDialog(null, "Do you really want to disconnect the client?", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==0) {
-					suitThread.interrupt();
+					suitThread.disconnect();
 				}
 			}
 		});
@@ -113,10 +112,10 @@ public class SuitPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				if (suitThread.isShowRunning()) {
 					suitThread.setShowRunning(false);
-					suitThread.sendCommand(SuitThread.STOP_SHOW);
+					suitThread.sendCommand(Suit.STOP_SHOW);
 				} else {
 					suitThread.setShowRunning(true);
-					suitThread.sendCommand(SuitThread.START_SHOW);
+					suitThread.sendCommand(Suit.START_SHOW);
 				}
 			}
 		});

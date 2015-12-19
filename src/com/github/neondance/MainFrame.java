@@ -3,8 +3,6 @@ package com.github.neondance;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JPanel;
@@ -12,18 +10,18 @@ import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.text.DefaultCaret;
 import javax.swing.JButton;
-import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.border.LineBorder;
-import java.awt.Color;
 import javax.swing.border.BevelBorder;
 import javax.swing.ScrollPaneConstants;
 import java.awt.FlowLayout;
 import javax.swing.border.TitledBorder;
-import javax.swing.JToggleButton;
+import javax.swing.JTextField;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.JCheckBox;
 
 public class MainFrame {
 
@@ -36,6 +34,13 @@ public class MainFrame {
 	private JPanel suitePane;
 	private JPanel panel;
 	private JLabel lblConnectedClients;
+	private JTextField oscQueueTextField;
+	private JTextField oscIpTextField;
+	private JSpinner heartBeatTimeoutSpinner;
+	private JSpinner startShowTimeoutSpinner;
+	private JCheckBox chckbxUseOsc;
+	private JCheckBox chckbxAutoRemoveSuit;
+	private JButton btnStop;
 
 	/**
 	 * Launch the application.
@@ -66,7 +71,7 @@ public class MainFrame {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 928, 670);
+		frame.setBounds(100, 100, 928, 727);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JLabel lblServerStatus = new JLabel("Server status");
@@ -102,22 +107,21 @@ public class MainFrame {
 		
 		JLabel lblVersion = new JLabel(Server.version);
 		
-		JButton btnLearnQlab = new JButton("Learn QLAB");
-		btnLearnQlab.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				server.oscGo();
-			}
-		});
+		lblConnectedClients = new JLabel("Connected Clients: 0");
 		
-		lblConnectedClients = new JLabel("");
+		JPanel panel_1 = new JPanel();
+		panel_1.setBorder(new TitledBorder(null, "OSC", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		
+		JPanel panel_2 = new JPanel();
+		panel_2.setBorder(new TitledBorder(null, "Settings", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(suiteScrollPane, GroupLayout.DEFAULT_SIZE, 916, Short.MAX_VALUE)
-						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 916, Short.MAX_VALUE)
+						.addComponent(suiteScrollPane, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
+						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblServerStatus)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -126,11 +130,14 @@ public class MainFrame {
 							.addComponent(lblVersion))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(btnStartStop)
-							.addGap(18)
-							.addComponent(btnLearnQlab)
-							.addPreferredGap(ComponentPlacement.RELATED, 606, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 703, Short.MAX_VALUE)
 							.addComponent(lblConnectedClients))
-						.addComponent(panel, GroupLayout.PREFERRED_SIZE, 318, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addComponent(panel, GroupLayout.PREFERRED_SIZE, 318, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 194, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(panel_2, GroupLayout.DEFAULT_SIZE, 368, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
@@ -146,63 +153,176 @@ public class MainFrame {
 					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 82, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-							.addComponent(btnStartStop)
-							.addComponent(btnLearnQlab))
+						.addComponent(btnStartStop)
 						.addComponent(lblConnectedClients))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(suiteScrollPane, GroupLayout.PREFERRED_SIZE, 354, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGap(52))
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(panel_2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(panel_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addContainerGap(32, Short.MAX_VALUE))
 		);
+		
+		JLabel lblHeartbeatTimeout = new JLabel("Heartbeat Timeout");
+		
+		heartBeatTimeoutSpinner = new JSpinner();
+		heartBeatTimeoutSpinner.setModel(new SpinnerNumberModel(new Integer(30000), new Integer(10000), null, new Integer(5000)));
+		
+		JLabel lblStartShowTimeout = new JLabel("Start Show Timeout");
+		
+		startShowTimeoutSpinner = new JSpinner();
+		startShowTimeoutSpinner.setModel(new SpinnerNumberModel(new Integer(200), new Integer(10), null, new Integer(10)));
+		
+		chckbxUseOsc = new JCheckBox("Use OSC");
+		chckbxUseOsc.setSelected(true);
+		
+		chckbxAutoRemoveSuit = new JCheckBox("Auto remove suit");
+		chckbxAutoRemoveSuit.setSelected(true);
+		
+		JCheckBox chckbxOnAir = new JCheckBox("On Air");
+		chckbxOnAir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (chckbxOnAir.isSelected()) {
+					btnStop.setEnabled(false);
+				} else {
+					btnStop.setEnabled(true);
+				}
+			}
+		});
+		GroupLayout gl_panel_2 = new GroupLayout(panel_2);
+		gl_panel_2.setHorizontalGroup(
+			gl_panel_2.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_2.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(lblStartShowTimeout, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(lblHeartbeatTimeout, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(heartBeatTimeoutSpinner)
+						.addComponent(startShowTimeoutSpinner))
+					.addGap(18)
+					.addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING)
+						.addComponent(chckbxUseOsc)
+						.addComponent(chckbxAutoRemoveSuit)
+						.addComponent(chckbxOnAir))
+					.addContainerGap(127, Short.MAX_VALUE))
+		);
+		gl_panel_2.setVerticalGroup(
+			gl_panel_2.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_2.createSequentialGroup()
+					.addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_2.createSequentialGroup()
+							.addComponent(lblHeartbeatTimeout)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(heartBeatTimeoutSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblStartShowTimeout)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(startShowTimeoutSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addGroup(gl_panel_2.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(chckbxUseOsc)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(chckbxAutoRemoveSuit)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(chckbxOnAir)))
+					.addContainerGap(40, Short.MAX_VALUE))
+		);
+		panel_2.setLayout(gl_panel_2);
+		
+		oscQueueTextField = new JTextField();
+		oscQueueTextField.setText("/cue/neondance/");
+		oscQueueTextField.setColumns(10);
+		
+		JLabel lblQueue = new JLabel("Queue");
+		
+		JLabel lblIp = new JLabel("IP");
+		
+		oscIpTextField = new JTextField();
+		oscIpTextField.setColumns(10);
+		
+		JButton btnLearnQlab = new JButton("Fire");
+		btnLearnQlab.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Osc.getInstance().sendStart();
+			}
+		});
+		GroupLayout gl_panel_1 = new GroupLayout(panel_1);
+		gl_panel_1.setHorizontalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblQueue)
+						.addComponent(oscQueueTextField, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+						.addComponent(lblIp)
+						.addComponent(oscIpTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnLearnQlab))
+					.addContainerGap())
+		);
+		gl_panel_1.setVerticalGroup(
+			gl_panel_1.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_1.createSequentialGroup()
+					.addComponent(lblQueue)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(oscQueueTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(lblIp)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(oscIpTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnLearnQlab)
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		);
+		panel_1.setLayout(gl_panel_1);
 		
 		JButton button = new JButton("Flash");
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.FLASH);
+				server.sendCommandToAll(Suit.FLASH);
 			}
 		});
 		
 		JButton button_1 = new JButton("Blink");
 		button_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.BLINK);
+				server.sendCommandToAll(Suit.BLINK);
 			}
 		});
 		
 		JButton button_2 = new JButton("Rand");
 		button_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.RANDOM);
+				server.sendCommandToAll(Suit.RANDOM);
 			}
 		});
 		
 		JButton btnOn = new JButton("On");
 		btnOn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.ON);
+				server.sendCommandToAll(Suit.ON);
 			}
 		});
 		
 		JButton btnOff = new JButton("Off");
 		btnOff.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.OFF);
+				server.sendCommandToAll(Suit.OFF);
 			}
 		});
 		
 		JButton btnStart = new JButton("Start");
 		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.START_SHOW);
+				server.sendCommandToAll(Suit.START_SHOW);
 			}
 		});
 		
-		JButton btnStop = new JButton("Stop");
+		btnStop = new JButton("Stop");
 		btnStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				server.sendCommandToAll(SuitThread.STOP_SHOW);
+				server.sendCommandToAll(Suit.STOP_SHOW);
 			}
 		});
 		GroupLayout gl_panel = new GroupLayout(panel);
@@ -281,5 +401,29 @@ public class MainFrame {
 
 	public JPanel getSuitePane() {
 		return suitePane;
+	}
+
+	public JTextField getQlcTextField() {
+		return oscQueueTextField;
+	}
+
+	public JTextField getOscIpTextField() {
+		return oscIpTextField;
+	}
+
+	public JSpinner getHeartBeatTimeOutSpinner() {
+		return heartBeatTimeoutSpinner;
+	}
+
+	public JSpinner getStartShowTimeoutSpinner() {
+		return startShowTimeoutSpinner;
+	}
+
+	public JCheckBox getChckbxUseOsc() {
+		return chckbxUseOsc;
+	}
+
+	public JCheckBox getChckbxAutoRemoveSuit() {
+		return chckbxAutoRemoveSuit;
 	}
 }

@@ -1,31 +1,24 @@
 package com.github.neondance;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.charset.Charset;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.joda.time.Instant;
 
-public class SuitThread extends Thread {
+public class Suit {
 	
 	private Socket socket;
-	private Parameter parameter;
+	public Parameter parameter;
 	private Logger log;
 	private SuitPanel suitPanel;
 	private HeartBeat heartBeat;
-	private BufferedReader reader;
 	private BufferedWriter writer;
 	private Server server;
 	private boolean showRunning, iO;
+	private Instant sendShowStart, recievedShowStart;
 	
 	public static final String START_SHOW = "S;\r\n";
 	public static final String FLASH = "Flash;\r\n";
@@ -35,7 +28,7 @@ public class SuitThread extends Thread {
 	public static final String RANDOM = "Random;\r\n";
 	public static final String STOP_SHOW = "E;\r\n";
 	
-	public SuitThread(Socket socket, Server server) {
+	public Suit(Socket socket, Server server) {
 		super();
 		this.socket = socket;
 		this.parameter = new Parameter();
@@ -46,19 +39,22 @@ public class SuitThread extends Thread {
 	}
 
 	/*
-	 * Suitthread is started
+	 * Suit has connected, creating resources
 	 */
-	@Override
-	public void run() {
+	public void connect() {
 		try {
-			this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-			initialize(reader, writer);
+			//Parameters are filled
+			parameter.name = "UNKNOWN";
+			parameter.ip = socket.getInetAddress().getHostAddress();
+			//Set parameters to display on panel
+			setPanelParameters();
+			//Create new heartbeat and start it
+			this.heartBeat = new HeartBeat(socket, this);
+			this.heartBeat.start();
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
@@ -66,52 +62,34 @@ public class SuitThread extends Thread {
 	/*
 	 * Suitthread is stopped
 	 */
-	@Override
-	public void interrupt() {
+	public void disconnect() {
 		try {
-			reader.close();
 			writer.close();
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		heartBeat.interrupt(true);
+		heartBeat.interrupt();
 		suitPanel.destroy();
-		super.interrupt();
-		server.threadInterrupted(this);
+		server.suitDisconnected(this);
 	}
 
-	//INITIALIZE CONNECTION
-	//
-	private void initialize(BufferedReader reader, BufferedWriter writer) throws IOException, SocketException, JSONException{
-		//Timeout to abort if no data is recieved
-		socket.setSoTimeout(10000);
-		//Parameters are filled
-		parameter.name = this.getName();
-		parameter.ip = socket.getInetAddress().getHostAddress();
-		//Set timout back to infinite
-		socket.setSoTimeout(0);
-		//Set parameters to display on panel
-		setPanelParameters();
-		//Create new heartbeat and start it
-		this.heartBeat = new HeartBeat(socket, this);
-		this.heartBeat.start();
-	}
-	
 	public void sendCommand(String command) {
 		try {
-			if (showRunning) {
-				heartBeat.interrupt(true);
-			} else if (command.equals(SuitThread.STOP_SHOW)) {
-				heartBeat = null;
-				heartBeat = new HeartBeat(socket, this);
-				heartBeat.start();
-				suitPanel.getTxtOutput().setText("");
-			}
 			writer.write(command);
 			writer.flush();
+			if (showRunning) {
+//				heartBeat.interrupt(true);
+				sendShowStart = new Instant();
+				suitPanel.getTxtOutput().setText("SHOW STARTED");
+			} else if (command.equals(Suit.STOP_SHOW)) {
+//				heartBeat = null;
+//				heartBeat = new HeartBeat(socket, this);
+//				heartBeat.start();
+//				suitPanel.getTxtOutput().setText("");
+			}
 		} catch (IOException e) {
-			log.log(Logger.WARNING, this.getName() + ": Writing failed! " + command);
+			log.log(Logger.WARNING, parameter.name + ": Writing failed! " + command);
 		}
 	}
 	
@@ -130,7 +108,6 @@ public class SuitThread extends Thread {
 	}
 	
 	public void setSuitName(String name){
-		this.setName(name);
 		parameter.name = name;
 		setPanelParameters();
 	}
@@ -153,6 +130,22 @@ public class SuitThread extends Thread {
 
 	public void setiO(boolean iO) {
 		this.iO = iO;
+	}
+
+	public Instant getSendShowStart() {
+		return sendShowStart;
+	}
+
+	public void setSendShowStart(Instant sendShowStart) {
+		this.sendShowStart = sendShowStart;
+	}
+
+	public Instant getRecievedShowStart() {
+		return recievedShowStart;
+	}
+
+	public void setRecievedShowStart(Instant recievedShowStart) {
+		this.recievedShowStart = recievedShowStart;
 	}
 
 	public class Parameter {

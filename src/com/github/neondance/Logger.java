@@ -28,6 +28,7 @@ public class Logger {
 
 		case WARNING:
 			sb.append("WARNING: ");
+			setServerStatus(ISSUES);
 			break;
 			
 		case ERROR:
