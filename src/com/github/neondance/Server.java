@@ -139,9 +139,6 @@ public class Server extends Thread {
 				break;
 			}
 			suit.sendCommand(command);
-			if (command.equals(Suit.START_SHOW)) {
-				verifyShowStartRecieved();
-			}
 		}
 		if (mainFrame.getChckbxUseOsc().isSelected()){
 			if (command.equals(Suit.START_SHOW)){
@@ -149,6 +146,9 @@ public class Server extends Thread {
 			} else if (command.equals(Suit.STOP_SHOW)){
 				osc.sendStop();
 			}
+		}
+		if (command.equals(Suit.START_SHOW)) {
+			verifyShowStartRecieved();
 		}
 	}
 	
