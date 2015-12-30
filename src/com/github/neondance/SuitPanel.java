@@ -87,10 +87,11 @@ public class SuitPanel extends JPanel {
 			}
 		});
 		
-		JButton btnRandom = new JButton("Rand");
-		btnRandom.addActionListener(new ActionListener() {
+		JButton btnReset = new JButton("Reset");
+		btnReset.setBackground(new Color(255, 165, 0));
+		btnReset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				suitThread.sendCommand(Suit.RANDOM);
+				suitThread.sendCommand(Suit.RESET);
 			}
 		});
 		
@@ -111,11 +112,11 @@ public class SuitPanel extends JPanel {
 		tglbtnStartStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (suitThread.isShowRunning()) {
-					suitThread.setShowRunning(false);
 					suitThread.sendCommand(Suit.STOP_SHOW);
+					suitThread.setShowRunning(false);
 				} else {
-					suitThread.setShowRunning(true);
 					suitThread.sendCommand(Suit.START_SHOW);
+					suitThread.setShowRunning(true);
 				}
 			}
 		});
@@ -143,7 +144,7 @@ public class SuitPanel extends JPanel {
 								.addPreferredGap(ComponentPlacement.RELATED)
 								.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
 									.addComponent(btnBlink, GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE)
-									.addComponent(btnRandom, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE))))
+									.addComponent(btnReset, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE))))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 								.addComponent(lblIp)
@@ -182,7 +183,7 @@ public class SuitPanel extends JPanel {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(tglbtnOnOff)
-						.addComponent(btnRandom))
+						.addComponent(btnReset))
 					.addGap(8)
 					.addComponent(separator_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addGap(8)

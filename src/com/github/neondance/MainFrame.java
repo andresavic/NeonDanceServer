@@ -7,6 +7,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.text.DefaultCaret;
 import javax.swing.JButton;
@@ -22,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JCheckBox;
+import java.awt.Color;
 
 public class MainFrame {
 
@@ -41,6 +43,7 @@ public class MainFrame {
 	private JCheckBox chckbxUseOsc;
 	private JCheckBox chckbxAutoRemoveSuit;
 	private JButton btnStop;
+	private JPanel flag;
 
 	/**
 	 * Launch the application.
@@ -240,6 +243,7 @@ public class MainFrame {
 		JLabel lblIp = new JLabel("IP");
 		
 		oscIpTextField = new JTextField();
+		oscIpTextField.setText("192.168.1.2");
 		oscIpTextField.setColumns(10);
 		
 		JButton btnLearnQlab = new JButton("Fire");
@@ -325,12 +329,33 @@ public class MainFrame {
 				server.sendCommandToAll(Suit.STOP_SHOW);
 			}
 		});
+		
+		JButton btnApplause = new JButton("Applause");
+		btnApplause.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				server.sendCommandToAll(Suit.APPLAUSE);
+			}
+		});
+		
+		JButton btnNewButton = new JButton("Reset");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (JOptionPane.showConfirmDialog(null, "Do you really want to reset all clients?", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==0) {
+					server.sendCommandToAll(Suit.RESET);
+				}
+			}
+		});
+		btnNewButton.setForeground(Color.WHITE);
+		btnNewButton.setBackground(new Color(220, 20, 60));
+		
+		flag = new JPanel();
 		GroupLayout gl_panel = new GroupLayout(panel);
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(btnNewButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
 								.addComponent(btnOn, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -338,12 +363,16 @@ public class MainFrame {
 							.addGap(6)
 							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
 								.addComponent(btnOff, 0, 0, Short.MAX_VALUE)
-								.addComponent(button_1, GroupLayout.DEFAULT_SIZE, 66, Short.MAX_VALUE))
-							.addPreferredGap(ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
-							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(btnStop, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnStart, GroupLayout.DEFAULT_SIZE, 95, Short.MAX_VALUE)))
-						.addComponent(button_2, GroupLayout.PREFERRED_SIZE, 66, GroupLayout.PREFERRED_SIZE))
+								.addComponent(button_1, GroupLayout.DEFAULT_SIZE, 66, Short.MAX_VALUE)))
+						.addGroup(gl_panel.createSequentialGroup()
+							.addComponent(button_2, GroupLayout.PREFERRED_SIZE, 66, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnApplause, 0, 0, Short.MAX_VALUE)))
+					.addPreferredGap(ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(flag, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnStop, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnStart, GroupLayout.DEFAULT_SIZE, 95, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		gl_panel.setVerticalGroup(
@@ -355,15 +384,21 @@ public class MainFrame {
 							.addComponent(button_1)
 							.addComponent(btnStart)))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
 						.addGroup(gl_panel.createSequentialGroup()
 							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
 								.addComponent(btnOn)
 								.addComponent(btnOff))
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(button_2))
-						.addComponent(btnStop))
-					.addGap(4))
+							.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
+								.addComponent(button_2)
+								.addComponent(btnApplause)))
+						.addGroup(gl_panel.createSequentialGroup()
+							.addComponent(btnStop)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(flag, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+					.addPreferredGap(ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
+					.addComponent(btnNewButton))
 		);
 		panel.setLayout(gl_panel);
 		
@@ -425,5 +460,9 @@ public class MainFrame {
 
 	public JCheckBox getChckbxAutoRemoveSuit() {
 		return chckbxAutoRemoveSuit;
+	}
+
+	public JPanel getFlag() {
+		return flag;
 	}
 }

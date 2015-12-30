@@ -27,6 +27,8 @@ public class Suit {
 	public static final String BLINK = "Blink;\r\n";
 	public static final String RANDOM = "Random;\r\n";
 	public static final String STOP_SHOW = "E;\r\n";
+	public static final String RESET = "Reset;\r\n";
+	public static final String APPLAUSE = "Applause;\r\n";
 	
 	public Suit(Socket socket, Server server) {
 		super();
@@ -63,30 +65,29 @@ public class Suit {
 	 * Suitthread is stopped
 	 */
 	public void disconnect() {
+		heartBeat.interrupt();
 		try {
 			writer.close();
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		heartBeat.interrupt();
 		suitPanel.destroy();
 		server.suitDisconnected(this);
 	}
 
 	public void sendCommand(String command) {
 		try {
+			if (showRunning && (command.equals(START_SHOW))) {
+				log.log(Logger.INFO, parameter.name + " show already running. Skipping command...");
+				return;
+			}
 			writer.write(command);
 			writer.flush();
-			if (showRunning) {
+			if (command.equals(START_SHOW)) {
 //				heartBeat.interrupt(true);
 				sendShowStart = new Instant();
 				suitPanel.getTxtOutput().setText("SHOW STARTED");
-			} else if (command.equals(Suit.STOP_SHOW)) {
-//				heartBeat = null;
-//				heartBeat = new HeartBeat(socket, this);
-//				heartBeat.start();
-//				suitPanel.getTxtOutput().setText("");
 			}
 		} catch (IOException e) {
 			log.log(Logger.WARNING, parameter.name + ": Writing failed! " + command);

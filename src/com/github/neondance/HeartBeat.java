@@ -1,10 +1,13 @@
 package com.github.neondance;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.joda.time.Instant;
 import org.joda.time.Interval;
@@ -21,6 +24,8 @@ public class HeartBeat extends Thread {
 	private Logger log;
 	private Scanner scan;
 	private MainFrame mainFrame;
+	private Timer timer;
+	private Instant oldTime;
 
 	public HeartBeat(Socket socket, Suit suit) {
 		super();
@@ -32,8 +37,9 @@ public class HeartBeat extends Thread {
 
 	@Override
 	public void run() {
+		timer = new Timer();
 		scan = null;
-		Instant oldTime = new Instant();
+		oldTime = new Instant();
 		PeriodFormatter pf = new PeriodFormatterBuilder()
 				.appendMinutes()
 				.appendSuffix("m")
@@ -45,6 +51,15 @@ public class HeartBeat extends Thread {
 				.appendSuffix("ms")
 				.toFormatter();
 		try {
+			timer.schedule(new TimerTask() {
+				
+				@Override
+				public void run() {
+					Interval i = new Interval(oldTime, new Instant());
+					suit.getSuitPanel().getHeartbeatTime().setText(pf.print(i.toPeriod()));
+					suit.getSuitPanel().repaint();
+				}
+			}, 0, 30);
 			while(true) {
 				//Timout for not recieving data
 				socket.setSoTimeout((int)mainFrame.getHeartBeatTimeOutSpinner().getValue());
@@ -93,6 +108,7 @@ public class HeartBeat extends Thread {
 						suit.setRecievedShowStart(new Instant()	);
 					} else if (!suit.isShowRunning() && content.equals("ShowEnd")) {
 						suit.getSuitPanel().getTxtOutput().setText("");
+						mainFrame.getFlag().setBackground(new Color(238, 238, 238));
 					}
 					break;
 					
@@ -103,8 +119,6 @@ public class HeartBeat extends Thread {
 				
 				//Flash if data found
 				suit.getSuitPanel().flashHearbeat();
-				Interval i = new Interval(oldTime, new Instant());
-				suit.getSuitPanel().getHeartbeatTime().setText(pf.print(i.toPeriod()));
 				oldTime = new Instant();
 			}
 		} catch (NoSuchElementException|IOException e) {
@@ -121,5 +135,13 @@ public class HeartBeat extends Thread {
 			suit.disconnect();
 		}
 	}
+
+	@Override
+	public void interrupt() {
+		scan.close();
+		timer.cancel();
+		super.interrupt();
+	}
+	
 	
 }
