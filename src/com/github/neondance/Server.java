@@ -1,5 +1,6 @@
 package com.github.neondance;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,7 +17,7 @@ public class Server extends Thread {
 	private MainFrame mainFrame;
 	private Osc osc;
 	
-	public static final String version = "0.2.0";
+	public static final String version = "0.3.0";
 	
 	public Server() {
 		this.mainFrame = MainFrame.getInstance();
@@ -121,6 +122,7 @@ public class Server extends Thread {
 	
 	public void sendCommandToAll(String command) {
 		for (Suit suit : suits) {
+			suit.sendCommand(command);
 			switch (command) {
 			case Suit.START_SHOW:
 				suit.setShowRunning(true);
@@ -138,7 +140,9 @@ public class Server extends Thread {
 				suit.setiO(false);
 				break;
 			}
-			suit.sendCommand(command);
+		}
+		if (command.equals(Suit.START_SHOW)) {
+			verifyShowStartRecieved();
 		}
 		if (mainFrame.getChckbxUseOsc().isSelected()){
 			if (command.equals(Suit.START_SHOW)){
@@ -146,9 +150,6 @@ public class Server extends Thread {
 			} else if (command.equals(Suit.STOP_SHOW)){
 				osc.sendStop();
 			}
-		}
-		if (command.equals(Suit.START_SHOW)) {
-			verifyShowStartRecieved();
 		}
 	}
 	
@@ -169,6 +170,7 @@ public class Server extends Thread {
 			}
 			suit.getSuitPanel().getTxtOutput().setText("STARTED - " + i.toDurationMillis() + "ms");
 		}
+		mainFrame.getFlag().setBackground(Color.GREEN);
 	}
 
 	private void abortShow() {
@@ -178,5 +180,6 @@ public class Server extends Thread {
 			osc.sendStop();
 		}
 		log.log(Logger.WARNING, "Show stopped because recieved message was to late.");
+		mainFrame.getFlag().setBackground(Color.RED);
 	}
 }
