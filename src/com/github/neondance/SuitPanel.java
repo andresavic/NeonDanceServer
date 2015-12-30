@@ -91,7 +91,9 @@ public class SuitPanel extends JPanel {
 		btnReset.setBackground(new Color(255, 165, 0));
 		btnReset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				suitThread.sendCommand(Suit.RESET);
+				if (JOptionPane.showConfirmDialog(null, "Do you really want to reset the client?", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==0) {
+					suitThread.sendCommand(Suit.RESET);
+				}
 			}
 		});
 		
