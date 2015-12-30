@@ -154,6 +154,7 @@ public class Server extends Thread {
 	}
 	
 	private void verifyShowStartRecieved() {
+		mainFrame.getFlag().setBackground(Color.GREEN);
 		try {
 			Thread.sleep((int)mainFrame.getStartShowTimeoutSpinner().getValue() + 10);
 		} catch (InterruptedException e) {
@@ -162,20 +163,20 @@ public class Server extends Thread {
 		for (Suit suit : suits) {
 			if (suit.getSendShowStart() == null || suit.getRecievedShowStart() == null) {
 				abortShow();
+				break;
 			}
+			System.out.println(suit.getSendShowStart() + " " + suit.getRecievedShowStart());
 			Interval i = new Interval(suit.getSendShowStart(), suit.getRecievedShowStart());
 			if (i.toDurationMillis() > (int)mainFrame.getStartShowTimeoutSpinner().getValue()) {
 				abortShow();
 				break;
 			}
+			suit.resetTimer();
 			suit.getSuitPanel().getTxtOutput().setText("STARTED - " + i.toDurationMillis() + "ms");
 		}
-		mainFrame.getFlag().setBackground(Color.GREEN);
 	}
 
 	private void abortShow() {
-		sendCommandToAll(Suit.STOP_SHOW);
-		sendCommandToAll(Suit.STOP_SHOW);
 		if (mainFrame.getChckbxUseOsc().isSelected()) {
 			osc.sendStop();
 		}

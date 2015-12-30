@@ -56,8 +56,10 @@ public class HeartBeat extends Thread {
 				@Override
 				public void run() {
 					Interval i = new Interval(oldTime, new Instant());
-					suit.getSuitPanel().getHeartbeatTime().setText(pf.print(i.toPeriod()));
-					suit.getSuitPanel().repaint();
+					if (!(suit.getSuitPanel() == null)) {
+						suit.getSuitPanel().getHeartbeatTime().setText(pf.print(i.toPeriod()));
+						suit.getSuitPanel().repaint();
+					}
 				}
 			}, 0, 30);
 			while(true) {
@@ -110,6 +112,9 @@ public class HeartBeat extends Thread {
 						suit.getSuitPanel().getTxtOutput().setText("");
 						mainFrame.getFlag().setBackground(new Color(238, 238, 238));
 					}
+					if (content.equals("Reset")) {
+						suit.disconnect();
+					}
 					break;
 					
 				default:
@@ -138,8 +143,13 @@ public class HeartBeat extends Thread {
 
 	@Override
 	public void interrupt() {
-		scan.close();
+		try {
+			socket.close();
+		} catch (IOException e) {
+			log.handleError(e);
+		}
 		timer.cancel();
+		timer.purge();
 		super.interrupt();
 	}
 	

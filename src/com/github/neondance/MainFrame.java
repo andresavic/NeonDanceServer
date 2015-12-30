@@ -414,7 +414,6 @@ public class MainFrame {
 		frame.getContentPane().setLayout(groupLayout);
 	}
 
-	
 	public static MainFrame getInstance() {
 		if (mainFrame == null) {
 			mainFrame = new MainFrame();

@@ -68,7 +68,6 @@ public class Suit {
 		heartBeat.interrupt();
 		try {
 			writer.close();
-			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -82,16 +81,23 @@ public class Suit {
 				log.log(Logger.INFO, parameter.name + " show already running. Skipping command...");
 				return;
 			}
+			if (command.equals(START_SHOW)) {
+				resetTimer();
+			}
 			writer.write(command);
 			writer.flush();
 			if (command.equals(START_SHOW)) {
-//				heartBeat.interrupt(true);
 				sendShowStart = new Instant();
 				suitPanel.getTxtOutput().setText("SHOW STARTED");
 			}
 		} catch (IOException e) {
 			log.log(Logger.WARNING, parameter.name + ": Writing failed! " + command);
 		}
+	}
+	
+	public void resetTimer() {
+		sendShowStart = null;
+		recievedShowStart = null;
 	}
 	
 	//Assign suitpanel to thread
